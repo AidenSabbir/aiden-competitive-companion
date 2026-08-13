@@ -1,0 +1,111 @@
+{
+  "name": "aiden-competitive-companion",
+  "displayName": "Aiden Competitive Companion",
+  "description": "Minimal bridge for Competitive Companion: create solution from user template and write input.txt",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Aiden Competitive Companion",
+      "properties": {
+        "aidenCompetitiveCompanion.host": {
+          "type": "string",
+          "default": "127.0.0.1",
+          "description": "Host for Competitive Companion local server."
+        },
+        "aidenCompetitiveCompanion.port": {
+          "type": "number",
+          "default": 27121,
+          "description": "Port for Competitive Companion local server."
+        },
+        "aidenCompetitiveCompanion.templateDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "Template directory. If empty, uses ${userHome}/Documents/templates."
+        },
+        "aidenCompetitiveCompanion.inputMode": {
+          "type": "string",
+          "enum": [
+            "first",
+            "all"
+          ],
+          "default": "first",
+          "description": "Sample input write mode: first test only or all tests."
+        },
+        "aidenCompetitiveCompanion.languageMap": {
+          "type": "object",
+          "default": {
+            "cpp": {
+              "template": "cpp.cpp",
+              "extension": ".cpp"
+            },
+            "c++": {
+              "template": "cpp.cpp",
+              "extension": ".cpp"
+            },
+            "python": {
+              "template": "py.py",
+              "extension": ".py"
+            },
+            "py": {
+              "template": "py.py",
+              "extension": ".py"
+            },
+            "java": {
+              "template": "java.java",
+              "extension": ".java"
+            },
+            "c": {
+              "template": "c.c",
+              "extension": ".c"
+            },
+            "rust": {
+              "template": "rs.rs",
+              "extension": ".rs"
+            },
+            "rs": {
+              "template": "rs.rs",
+              "extension": ".rs"
+            },
+            "go": {
+              "template": "go.go",
+              "extension": ".go"
+            }
+          },
+          "description": "Language key to template filename and output extension mapping."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.125.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "typescript-eslint": "^8.61.1",
+    "eslint": "^10.5.0",
+    "typescript": "^6.0.3",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  }
+}
