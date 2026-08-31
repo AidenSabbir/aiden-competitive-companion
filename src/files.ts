@@ -34,18 +34,27 @@ function detectPreferredBaseName(problem: CompetitiveCompanionProblem): string |
     .filter(Boolean)
     .map((v: unknown) => String(v));
 
-  // 1) Strong URL parse first (Codeforces)
+  // 1) Strong URL parse first (Codeforces, AtCoder, CSES)
   for (const u of urlCandidates) {
-    // https://codeforces.com/contest/678/problem/D
-    // https://codeforces.com/problemset/problem/678/D
-    // https://codeforces.com/gym/123456/problem/A
-    const m =
+    // Codeforces
+    const mCF =
       u.match(/codeforces\.com\/contest\/(\d+)\/problem\/([A-Za-z][0-9A-Za-z]*)/i) ||
       u.match(/codeforces\.com\/problemset\/problem\/(\d+)\/([A-Za-z][0-9A-Za-z]*)/i) ||
       u.match(/codeforces\.com\/gym\/(\d+)\/problem\/([A-Za-z][0-9A-Za-z]*)/i);
+    if (mCF) {
+      return `CF${mCF[1]}${mCF[2]}`;
+    }
 
-    if (m) {
-      return `CF${m[1]}${m[2]}`;
+    // AtCoder
+    const mAC = u.match(/atcoder\.jp\/.*\/tasks\/([^/?]+)/i);
+    if (mAC) {
+      return mAC[1];
+    }
+
+    // CSES
+    const mCSES = u.match(/cses\.fi\/.*\/task\/(\d+)/i);
+    if (mCSES) {
+      return `CSES${mCSES[1]}`;
     }
   }
 
@@ -63,7 +72,21 @@ function detectPreferredBaseName(problem: CompetitiveCompanionProblem): string |
   const m2 = name.match(/^\s*([A-Za-z][0-9A-Za-z]*)\s*[\.\-:]/);
   if (m2) return m2[1];
 
-  return null;
+  // 4) Generic URL fallback
+  for (const u of urlCandidates) {
+    try {
+      const parsedUrl = new URL(u);
+      const parts = parsedUrl.pathname.split("/").filter(Boolean);
+      if (parts.length > 0) {
+        return parts[parts.length - 1];
+      }
+    } catch {
+      // ignore invalid URL
+    }
+  }
+
+  // 5) Fallback to sanitized name
+  return sanitizeFileName(name);
 }
 export async function createOrOpenSolution(problem: CompetitiveCompanionProblem): Promise<string> {
   const langKey = normalizeLanguage(problem.language as string | undefined);
@@ -76,35 +99,44 @@ export async function createOrOpenSolution(problem: CompetitiveCompanionProblem)
 
   const templateContent = await fs.readFile(templatePath, "utf8");
 
-  const baseName = detectPreferredBaseName(problem) ?? sanitizeFileName(problem.name);
-  const safeBaseName = sanitizeFileName(baseName);
-  const fileName = `${safeBaseName}${lang.extension}`;
+  const cfg = vscode.workspace.getConfiguration("aidenCompetitiveCompanion");
+  const fixedFileName = cfg.get<string>("fixedFileName", "").trim();
+
+  let fileName = "";
+  if (fixedFileName) {
+    fileName = fixedFileName;
+  } else {
+    const baseName = detectPreferredBaseName(problem) ?? sanitizeFileName(problem.name);
+    const safeBaseName = sanitizeFileName(baseName);
+    fileName = `${safeBaseName}${lang.extension}`;
+  }
+
   const fullPath = path.join(getWorkspaceRoot(), fileName);
 
   let shouldWrite = true;
-  try {
-    await fs.access(fullPath);
-    const action = await vscode.window.showWarningMessage(
-      `${fileName} already exists.`,
-      "Open Existing",
-      "Overwrite"
-    );
-    if (action === "Open Existing") shouldWrite = false;
-    else if (action !== "Overwrite") return fullPath; // user cancelled
-  } catch {
-    // doesn't exist
+  if (!fixedFileName) {
+    try {
+      await fs.access(fullPath);
+      const action = await vscode.window.showWarningMessage(
+        `${fileName} already exists.`,
+        "Open Existing",
+        "Overwrite"
+      );
+      if (action === "Open Existing") shouldWrite = false;
+      else if (action !== "Overwrite") return fullPath; // user cancelled
+    } catch {
+      // doesn't exist
+    }
   }
 
   if (shouldWrite) {
     await fs.writeFile(fullPath, templateContent, "utf8");
   }
 
-  const doc = await vscode.workspace.openTextDocument(fullPath);
-  await vscode.window.showTextDocument(doc);
   return fullPath;
 }
 
-export async function writeInputTxt(problem: CompetitiveCompanionProblem): Promise<void> {
+export async function writeInputTxt(problem: CompetitiveCompanionProblem): Promise<string> {
   const root = getWorkspaceRoot();
   const inputPath = path.join(root, "input.txt");
 
@@ -122,4 +154,26 @@ export async function writeInputTxt(problem: CompetitiveCompanionProblem): Promi
   }
 
   await fs.writeFile(inputPath, content, "utf8");
+  return inputPath;
+}
+
+export async function writeOutputTxt(problem: CompetitiveCompanionProblem): Promise<string> {
+  const root = getWorkspaceRoot();
+  const outputPath = path.join(root, "output.txt");
+
+  const cfg = vscode.workspace.getConfiguration("aidenCompetitiveCompanion");
+  const mode = cfg.get<string>("inputMode", "first");
+  const tests = problem.tests || [];
+
+  let content = "";
+  if (tests.length > 0) {
+    if (mode === "all") {
+      content = tests.map(t => t.output ?? "").join("\n");
+    } else {
+      content = tests[0]?.output ?? "";
+    }
+  }
+
+  await fs.writeFile(outputPath, content, "utf8");
+  return outputPath;
 }
