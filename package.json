@@ -2,7 +2,12 @@
   "name": "aiden-competitive-companion",
   "displayName": "Aiden Competitive Companion",
   "description": "Minimal bridge for Competitive Companion: create solution from user template and write input.txt",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AidenSabbir/aiden-competitive-companion"
+  },
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -14,9 +19,69 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aiden-cc-sidebar",
+          "title": "Aiden CC",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "aiden-cc-sidebar": [
+        {
+          "id": "aiden-cc-settings",
+          "name": "Settings & Actions"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "aiden-competitive-companion.quickSettings",
+        "title": "Aiden CC: Quick Settings"
+      },
+      {
+        "command": "aiden-competitive-companion.initWorkspace",
+        "title": "Aiden CC: Init Workspace",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "aiden-competitive-companion.setFixedFile",
+        "title": "Aiden CC: Set Fixed File Name",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "aiden-competitive-companion.toggleInputMode",
+        "title": "Aiden CC: Toggle Input Mode",
+        "icon": "$(list-selection)"
+      },
+      {
+        "command": "aiden-competitive-companion.toggleLayout",
+        "title": "Aiden CC: Toggle Layout",
+        "icon": "$(layout)"
+      },
+      {
+        "command": "aiden-competitive-companion.clearIO",
+        "title": "Aiden CC: Clear input/output",
+        "icon": "$(clear-all)"
+      }
+    ],
     "configuration": {
       "title": "Aiden Competitive Companion",
       "properties": {
+        "aidenCompetitiveCompanion.layout": {
+          "type": "string",
+          "enum": [
+            "none",
+            "source-input",
+            "source-input-output",
+            "source-input/output",
+            "input/output-source"
+          ],
+          "default": "source-input/output",
+          "description": "How to arrange the source, input, and output files when a problem is opened."
+        },
         "aidenCompetitiveCompanion.host": {
           "type": "string",
           "default": "127.0.0.1",
@@ -31,6 +96,11 @@
           "type": "string",
           "default": "",
           "description": "Template directory. If empty, uses ${userHome}/Documents/templates."
+        },
+        "aidenCompetitiveCompanion.fixedFileName": {
+          "type": "string",
+          "default": "",
+          "description": "If set, bypasses dynamic naming and always overwrites this specific file (e.g., 'main.cpp')."
         },
         "aidenCompetitiveCompanion.inputMode": {
           "type": "string",
@@ -95,14 +165,14 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.125.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
-    "typescript-eslint": "^8.61.1",
+    "@types/vscode": "^1.125.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
     "eslint": "^10.5.0",
     "typescript": "^6.0.3",
-    "@vscode/test-cli": "^0.0.15",
-    "@vscode/test-electron": "^3.0.0"
+    "typescript-eslint": "^8.61.1"
   },
   "overrides": {
     "diff": "^8.0.4",
