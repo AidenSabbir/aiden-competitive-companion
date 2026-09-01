@@ -47,6 +47,24 @@ export function registerCommands(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand("aiden-competitive-companion.setTemplateDirectory", async () => {
+      const cfg = vscode.workspace.getConfiguration("aidenCompetitiveCompanion");
+      const currentDir = cfg.get<string>("templateDirectory", "");
+      const newValue = await vscode.window.showInputBox({
+        prompt: "Enter the path to your template directory (or leave empty for default)",
+        value: currentDir
+      });
+
+      if (newValue !== undefined) {
+        await cfg.update("templateDirectory", newValue.trim(), vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(
+          newValue.trim() ? `Template directory set to: ${newValue.trim()}` : "Template directory reset to default."
+        );
+      }
+    })
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand("aiden-competitive-companion.toggleInputMode", async () => {
       const cfg = vscode.workspace.getConfiguration("aidenCompetitiveCompanion");
       const currentMode = cfg.get<string>("inputMode", "first");
@@ -91,8 +109,14 @@ export function registerCommands(context: vscode.ExtensionContext) {
       const cfg = vscode.workspace.getConfiguration("aidenCompetitiveCompanion");
       const currentFixed = cfg.get<string>("fixedFileName", "");
       const currentMode = cfg.get<string>("inputMode", "first");
+      const currentTemplateDir = cfg.get<string>("templateDirectory", "");
 
       const options = [
+        {
+          label: "$(folder) Set Template Directory",
+          description: currentTemplateDir ? `Currently: ${currentTemplateDir}` : "Currently: Default",
+          action: "set_template_dir"
+        },
         {
           label: "$(edit) Set Fixed File Name",
           description: currentFixed ? `Currently: ${currentFixed}` : "Currently: Dynamic (Off)",
@@ -111,7 +135,9 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
       if (!selected) return;
 
-      if (selected.action === "set_fixed_file") {
+      if (selected.action === "set_template_dir") {
+        vscode.commands.executeCommand("aiden-competitive-companion.setTemplateDirectory");
+      } else if (selected.action === "set_fixed_file") {
         vscode.commands.executeCommand("aiden-competitive-companion.setFixedFile");
       } else if (selected.action === "toggle_input_mode") {
         vscode.commands.executeCommand("aiden-competitive-companion.toggleInputMode");

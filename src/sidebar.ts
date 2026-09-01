@@ -29,11 +29,17 @@ export class AidenCCProvider implements vscode.TreeDataProvider<vscode.TreeItem>
         const fixedFileName = cfg.get<string>("fixedFileName", "").trim();
         const inputMode = cfg.get<string>("inputMode", "first");
         const layout = cfg.get<string>("layout", "source-input/output");
+        const templateDir = cfg.get<string>("templateDirectory", "").trim();
 
         const initItem = new vscode.TreeItem("Init Workspace (tasks.json)", vscode.TreeItemCollapsibleState.None);
         initItem.command = { command: "aiden-competitive-companion.initWorkspace", title: "Init Workspace" };
         initItem.iconPath = new vscode.ThemeIcon("new-folder");
         initItem.tooltip = "Creates .vscode/tasks.json for building and running code";
+
+        const templateDirItem = new vscode.TreeItem(`Template Dir: ${templateDir || 'Default'}`, vscode.TreeItemCollapsibleState.None);
+        templateDirItem.command = { command: "aiden-competitive-companion.setTemplateDirectory", title: "Set Template Directory" };
+        templateDirItem.iconPath = new vscode.ThemeIcon("folder");
+        templateDirItem.tooltip = "Click to change template directory";
 
         const fixedFileItem = new vscode.TreeItem(`Fixed File: ${fixedFileName || 'Dynamic (Off)'}`, vscode.TreeItemCollapsibleState.None);
         fixedFileItem.command = { command: "aiden-competitive-companion.setFixedFile", title: "Set Fixed File" };
@@ -55,6 +61,6 @@ export class AidenCCProvider implements vscode.TreeDataProvider<vscode.TreeItem>
         clearIOItem.iconPath = new vscode.ThemeIcon("clear-all");
         clearIOItem.tooltip = "Empties the contents of input.txt and output.txt";
 
-        return Promise.resolve([initItem, fixedFileItem, inputModeItem, layoutItem, clearIOItem]);
+        return Promise.resolve([initItem, templateDirItem, fixedFileItem, inputModeItem, layoutItem, clearIOItem]);
     }
 }

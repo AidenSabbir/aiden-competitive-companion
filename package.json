@@ -52,6 +52,11 @@
         "icon": "$(edit)"
       },
       {
+        "command": "aiden-competitive-companion.setTemplateDirectory",
+        "title": "Aiden CC: Set Template Directory",
+        "icon": "$(folder)"
+      },
+      {
         "command": "aiden-competitive-companion.toggleInputMode",
         "title": "Aiden CC: Toggle Input Mode",
         "icon": "$(list-selection)"
