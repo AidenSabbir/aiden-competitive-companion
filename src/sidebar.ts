@@ -34,12 +34,17 @@ export class AidenCCProvider implements vscode.TreeDataProvider<vscode.TreeItem>
             initItem.iconPath = new vscode.ThemeIcon("rocket");
             initItem.tooltip = "Creates .vscode/tasks.json for building and running code";
 
+            const openProblemItem = new vscode.TreeItem("Open Problem in Browser", vscode.TreeItemCollapsibleState.None);
+            openProblemItem.command = { command: "aiden-competitive-companion.openProblem", title: "Open Problem" };
+            openProblemItem.iconPath = new vscode.ThemeIcon("globe");
+            openProblemItem.tooltip = "Opens the last received problem in your default web browser";
+
             const clearIOItem = new vscode.TreeItem("Clear I/O Files", vscode.TreeItemCollapsibleState.None);
             clearIOItem.command = { command: "aiden-competitive-companion.clearIO", title: "Clear IO" };
             clearIOItem.iconPath = new vscode.ThemeIcon("trash");
             clearIOItem.tooltip = "Empties the contents of input.txt and output.txt";
 
-            return Promise.resolve([initItem, clearIOItem]);
+            return Promise.resolve([initItem, openProblemItem, clearIOItem]);
         }
 
         if (element.label === "Configuration") {

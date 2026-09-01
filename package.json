@@ -70,6 +70,11 @@
         "command": "aiden-competitive-companion.clearIO",
         "title": "Aiden CC: Clear input/output",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "aiden-competitive-companion.openProblem",
+        "title": "Aiden CC: Open Problem in Browser",
+        "icon": "$(globe)"
       }
     ],
     "configuration": {

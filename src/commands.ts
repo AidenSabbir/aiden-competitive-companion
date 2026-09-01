@@ -3,6 +3,8 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { AidenCCProvider } from "./sidebar";
 
+import { lastProblemUrl } from "./extension";
+
 let statusBarItem: vscode.StatusBarItem;
 
 export function registerCommands(context: vscode.ExtensionContext) {
@@ -99,6 +101,16 @@ export function registerCommands(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage("Cleared input.txt and output.txt");
       } catch (err) {
         vscode.window.showErrorMessage("Failed to clear IO files");
+      }
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("aiden-competitive-companion.openProblem", async () => {
+      if (lastProblemUrl) {
+        vscode.env.openExternal(vscode.Uri.parse(lastProblemUrl));
+      } else {
+        vscode.window.showInformationMessage("No problem received yet.");
       }
     })
   );
@@ -223,12 +235,13 @@ export function registerCommands(context: vscode.ExtensionContext) {
 function updateStatusBar() {
   const cfg = vscode.workspace.getConfiguration("aidenCompetitiveCompanion");
   const fixedFileName = cfg.get<string>("fixedFileName", "").trim();
+  const port = cfg.get<number>("port", 27121);
   
   if (fixedFileName) {
-    statusBarItem.text = `$(file-code) Aiden: ${fixedFileName}`;
-    statusBarItem.tooltip = "Aiden CC: Overwriting fixed file (Click to change)";
+    statusBarItem.text = `$(plug) Aiden (${port}) | $(file-code) ${fixedFileName}`;
+    statusBarItem.tooltip = "Aiden CC is listening. Overwriting fixed file (Click to change settings)";
   } else {
-    statusBarItem.text = `$(symbol-variable) Aiden: Dynamic`;
-    statusBarItem.tooltip = "Aiden CC: Dynamic naming (Click to change)";
+    statusBarItem.text = `$(plug) Aiden (${port}) | $(symbol-variable) Dynamic`;
+    statusBarItem.tooltip = "Aiden CC is listening. Dynamic naming (Click to change settings)";
   }
 }
