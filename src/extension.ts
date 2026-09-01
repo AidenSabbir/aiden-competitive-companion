@@ -5,6 +5,7 @@ import { CompetitiveCompanionProblem } from "./problem";
 import { registerCommands } from "./commands";
 
 let server: import("http").Server | undefined;
+export let lastProblemUrl: string | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("[AidenCC] activate() called");
@@ -13,6 +14,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   server = startServer(async (problem: CompetitiveCompanionProblem) => {
     console.log("[AidenCC] received:", problem?.name, problem?.language);
+
+    if (problem.url) {
+      lastProblemUrl = problem.url as string;
+    }
 
     try {
       const docPath = await createOrOpenSolution(problem);

@@ -3,6 +3,8 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { AidenCCProvider } from "./sidebar";
 
+import { lastProblemUrl } from "./extension";
+
 let statusBarItem: vscode.StatusBarItem;
 
 export function registerCommands(context: vscode.ExtensionContext) {
@@ -47,6 +49,24 @@ export function registerCommands(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand("aiden-competitive-companion.setTemplateDirectory", async () => {
+      const cfg = vscode.workspace.getConfiguration("aidenCompetitiveCompanion");
+      const currentDir = cfg.get<string>("templateDirectory", "");
+      const newValue = await vscode.window.showInputBox({
+        prompt: "Enter the path to your template directory (or leave empty for default)",
+        value: currentDir
+      });
+
+      if (newValue !== undefined) {
+        await cfg.update("templateDirectory", newValue.trim(), vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(
+          newValue.trim() ? `Template directory set to: ${newValue.trim()}` : "Template directory reset to default."
+        );
+      }
+    })
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand("aiden-competitive-companion.toggleInputMode", async () => {
       const cfg = vscode.workspace.getConfiguration("aidenCompetitiveCompanion");
       const currentMode = cfg.get<string>("inputMode", "first");
@@ -85,14 +105,30 @@ export function registerCommands(context: vscode.ExtensionContext) {
     })
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand("aiden-competitive-companion.openProblem", async () => {
+      if (lastProblemUrl) {
+        vscode.env.openExternal(vscode.Uri.parse(lastProblemUrl));
+      } else {
+        vscode.window.showInformationMessage("No problem received yet.");
+      }
+    })
+  );
+
   // 4. Register Quick Settings Command (Still works from Status Bar)
   context.subscriptions.push(
     vscode.commands.registerCommand("aiden-competitive-companion.quickSettings", async () => {
       const cfg = vscode.workspace.getConfiguration("aidenCompetitiveCompanion");
       const currentFixed = cfg.get<string>("fixedFileName", "");
       const currentMode = cfg.get<string>("inputMode", "first");
+      const currentTemplateDir = cfg.get<string>("templateDirectory", "");
 
       const options = [
+        {
+          label: "$(folder) Set Template Directory",
+          description: currentTemplateDir ? `Currently: ${currentTemplateDir}` : "Currently: Default",
+          action: "set_template_dir"
+        },
         {
           label: "$(edit) Set Fixed File Name",
           description: currentFixed ? `Currently: ${currentFixed}` : "Currently: Dynamic (Off)",
@@ -111,7 +147,9 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
       if (!selected) return;
 
-      if (selected.action === "set_fixed_file") {
+      if (selected.action === "set_template_dir") {
+        vscode.commands.executeCommand("aiden-competitive-companion.setTemplateDirectory");
+      } else if (selected.action === "set_fixed_file") {
         vscode.commands.executeCommand("aiden-competitive-companion.setFixedFile");
       } else if (selected.action === "toggle_input_mode") {
         vscode.commands.executeCommand("aiden-competitive-companion.toggleInputMode");
@@ -197,12 +235,13 @@ export function registerCommands(context: vscode.ExtensionContext) {
 function updateStatusBar() {
   const cfg = vscode.workspace.getConfiguration("aidenCompetitiveCompanion");
   const fixedFileName = cfg.get<string>("fixedFileName", "").trim();
+  const port = cfg.get<number>("port", 27121);
   
   if (fixedFileName) {
-    statusBarItem.text = `$(file-code) Aiden: ${fixedFileName}`;
-    statusBarItem.tooltip = "Aiden CC: Overwriting fixed file (Click to change)";
+    statusBarItem.text = `$(plug) Aiden (${port}) | $(file-code) ${fixedFileName}`;
+    statusBarItem.tooltip = "Aiden CC is listening. Overwriting fixed file (Click to change settings)";
   } else {
-    statusBarItem.text = `$(symbol-variable) Aiden: Dynamic`;
-    statusBarItem.tooltip = "Aiden CC: Dynamic naming (Click to change)";
+    statusBarItem.text = `$(plug) Aiden (${port}) | $(symbol-variable) Dynamic`;
+    statusBarItem.tooltip = "Aiden CC is listening. Dynamic naming (Click to change settings)";
   }
 }
