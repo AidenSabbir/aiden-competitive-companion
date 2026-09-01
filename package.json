@@ -2,7 +2,7 @@
   "name": "aiden-competitive-companion",
   "displayName": "Aiden Competitive Companion",
   "description": "Minimal bridge for Competitive Companion: create solution from user template and write input.txt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "icon": "resources/icon.png",
   "repository": {
     "type": "git",
